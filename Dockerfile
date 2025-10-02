@@ -1,8 +1,5 @@
 # Use Node.js 18 as the base image
-FROM node:18-alpine3.19
-
-# Update apk packages to reduce vulnerabilities
-RUN apk update && apk upgrade
+FROM node:18-alpine
 
 # Set working directory
 WORKDIR /app
@@ -16,8 +13,16 @@ RUN npm install
 # Copy the rest of the application
 COPY . .
 
+# Verify client directory contents
+RUN ls -la /app/client
+
 # Build the React frontend
-RUN npm run build:client
+RUN npm run --workspace=client tsc
+RUN npm run --workspace=client vite build
+
+# Verify build output
+RUN ls -la /app/server/public
+RUN cat /app/server/public/index.html || echo "index.html not found or empty"
 
 # Expose the server port
 EXPOSE 5000
